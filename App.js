@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, FlatList } from "react-native";
 
 const firebase = require('firebase')
 require('firebase/firestore')
@@ -23,13 +23,53 @@ export default class App extends React.Component {
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig)
     }
+    this.referenceShoppingList = firebase.firestore().collection('shoppingLists')
   }
 
+  componentDidMount() {
+    this.referenceShoppingList = firebase.firestore().collection('shoppingLists');
+    this.unsubscribe = this.referenceShoppingList.onSnapshot(this.onCollectionUpdate)
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  onCollectionUpdate = (querySnapshot) => {
+    const lists = [];
+    // go through each document
+    querySnapshot.forEach((doc) => {
+      // get the QueryDocumentSnapshot's data
+      var data = doc.data();
+      lists.push({
+        name: data.name,
+        items: data.items.toString(),
+      })
+    })
+    this.setState({
+      lists,
+    })
+  }
 
   render() {
     return (
       <View style={styles.container}>
-        <Text style={{ fontWeight: '900' }}>Open up App.js to start working on your app!</Text>
+        <View>
+          <FlatList
+
+            data={this.state.lists}
+            renderItem={({ item }) =>
+              <View>
+                <Text style={styles.text}>
+                  {item.name}:
+                </Text>
+                <Text style={styles.item}>
+                  {item.items}
+                </Text>
+              </View>
+            }
+          />
+        </View>
       </View>
     );
   }
@@ -39,9 +79,14 @@ export default class App extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#93D8FF',
-    alignItems: 'center',
     justifyContent: 'center',
-
+    paddingTop: 40
   },
+  item: {
+    fontSize: 20,
+    color: 'blue',
+  },
+  text: {
+    fontSize: 30,
+  }
 });
