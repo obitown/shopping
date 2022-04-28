@@ -53,8 +53,8 @@ export default class App extends React.Component {
 
   addList = () => {
     this.referenceShoppingList.add({
-      name: 'TestList',
-      items: ['eggs', 'pasta', 'veggies',],
+      name: 'TestList2',
+      items: ['test', 'test', 'test',],
     });
   }
 
