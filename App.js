@@ -77,6 +77,7 @@ export default class App extends React.Component {
             }
           />
           <Button
+            style={styles.button}
             onPress={this.addList}
           />
         </View>
@@ -98,5 +99,9 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 30,
-  }
+  },
+  button: {
+    flex: 1,
+    width: '25%'
+  },
 });
