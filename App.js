@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList, Button } from "react-native";
 
 const firebase = require('firebase')
 require('firebase/firestore')
@@ -51,6 +51,13 @@ export default class App extends React.Component {
     })
   }
 
+  addList = () => {
+    this.referenceShoppingList.add({
+      name: 'TestList',
+      items: ['eggs', 'pasta', 'veggies',],
+    });
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -59,7 +66,7 @@ export default class App extends React.Component {
 
             data={this.state.lists}
             renderItem={({ item }) =>
-              <View>
+              <View style={styles.container}>
                 <Text style={styles.text}>
                   {item.name}:
                 </Text>
@@ -68,6 +75,9 @@ export default class App extends React.Component {
                 </Text>
               </View>
             }
+          />
+          <Button
+            onPress={this.addList}
           />
         </View>
       </View>
