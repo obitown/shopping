@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList, Button } from "react-native";
+import { View, Text, StyleSheet, FlatList, Button, Pressable } from "react-native";
 
 const firebase = require('firebase')
 require('firebase/firestore')
@@ -8,6 +8,7 @@ export default class App extends React.Component {
   constructor() {
     super();
     this.state = {
+      uid: '',
       lists: []
     }
 
@@ -28,7 +29,21 @@ export default class App extends React.Component {
 
   componentDidMount() {
     this.referenceShoppingList = firebase.firestore().collection('shoppingLists');
+
     this.unsubscribe = this.referenceShoppingList.onSnapshot(this.onCollectionUpdate);
+
+    this.authUnsubscribe = firebase.auth().onAuthStateChanged
+      (async (user) => {
+        if (!user) {
+          await firebase.auth().signInAnonymously();
+        }
+
+        //update user state with currently active user data
+        this.setState({
+          uid: user.uid,
+          loggedInText: 'Hello there',
+        });
+      });
   }
 
   componentWillUnmount() {
@@ -53,15 +68,15 @@ export default class App extends React.Component {
 
   addList = () => {
     this.referenceShoppingList.add({
-      name: 'TestList2',
-      items: ['test', 'test', 'test',],
+      name: 'Christmas List',
+      items: ['Dog', 'Cat', 'Bird',],
     });
   }
 
   render() {
     return (
-      <View style={styles.container}>
-        <View>
+      <View >
+        <View style={styles.container}>
           <FlatList
 
             data={this.state.lists}
@@ -73,14 +88,19 @@ export default class App extends React.Component {
                 <Text style={styles.item}>
                   {item.items}
                 </Text>
+
               </View>
             }
           />
-          <Button
+          <Pressable
             style={styles.button}
-            onPress={this.addList}
-          />
+            onPress={this.addList}>
+            <Text>Add List</Text>
+          </Pressable>
         </View>
+        <Text>
+          {this.state.loggedInText}
+        </Text>
       </View>
     );
   }
@@ -91,6 +111,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
     paddingTop: 40
   },
   item: {
@@ -101,7 +122,11 @@ const styles = StyleSheet.create({
     fontSize: 30,
   },
   button: {
-    flex: 1,
-    width: '25%'
+    height: 48,
+    width: '50%',
+    backgroundColor: '#d2ffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 24,
   },
 });
