@@ -28,7 +28,7 @@ export default class App extends React.Component {
 
   componentDidMount() {
     this.referenceShoppingList = firebase.firestore().collection('shoppingLists');
-    this.unsubscribe = this.referenceShoppingList.onSnapshot(this.onCollectionUpdate)
+    this.unsubscribe = this.referenceShoppingList.onSnapshot(this.onCollectionUpdate);
   }
 
   componentWillUnmount() {
