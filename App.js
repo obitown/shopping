@@ -1,53 +1,32 @@
 import React from "react";
 import { View, Text, StyleSheet, FlatList, Button, Pressable } from "react-native";
 
-const firebase = require('firebase')
-require('firebase/firestore')
+const firebase = require('firebase');
+require('firebase/firestore');
+require('firebase/auth');
 
 export default class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      uid: '',
+      uid: 0,
       lists: []
     }
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAvew1oYkmw-MvJfNU7pLJMsxU0_1aOJHc",
-      authDomain: "test-604cd.firebaseapp.com",
-      projectId: "test-604cd",
-      storageBucket: "test-604cd.appspot.com",
-      messagingSenderId: "806267742453",
-      appId: "1:806267742453:web:a062c00f2e3b629d513dbc"
-    }
-
     if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig)
+      firebase.initializeApp({
+        apiKey: "AIzaSyAvew1oYkmw-MvJfNU7pLJMsxU0_1aOJHc",
+        authDomain: "test-604cd.firebaseapp.com",
+        projectId: "test-604cd",
+        storageBucket: "test-604cd.appspot.com",
+        messagingSenderId: "806267742453",
+        appId: "1:806267742453:web:a062c00f2e3b629d513dbc"
+      })
     }
+
     this.referenceShoppingList = firebase.firestore().collection('shoppingLists')
-  }
 
-  componentDidMount() {
-    this.referenceShoppingList = firebase.firestore().collection('shoppingLists');
-
-    this.unsubscribe = this.referenceShoppingList.onSnapshot(this.onCollectionUpdate);
-
-    this.authUnsubscribe = firebase.auth().onAuthStateChanged
-      (async (user) => {
-        if (!user) {
-          await firebase.auth().signInAnonymously();
-        }
-
-        //update user state with currently active user data
-        this.setState({
-          uid: user.uid,
-          loggedInText: 'Hello there',
-        });
-      });
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe();
+    this.referenceShoppingListUser = firebase.firestore().collection('shoppingLists').where('uid', '==', this.state.uid)
   }
 
   onCollectionUpdate = (querySnapshot) => {
@@ -67,9 +46,11 @@ export default class App extends React.Component {
   }
 
   addList = () => {
+    //add a new list to the collection
     this.referenceShoppingList.add({
       name: 'Christmas List',
       items: ['Dog', 'Cat', 'Bird',],
+      uid: this.state.uid,
     });
   }
 
@@ -105,6 +86,37 @@ export default class App extends React.Component {
     );
   }
 
+  componentDidMount() {
+    //creating a reference to 'shoppingLists' Collection
+    this.referenceShoppingList = firebase.firestore().collection('shoppingLists')
+
+    //listen to authentication events
+    this.authUnsubscribe = firebase.auth().onAuthStateChanged
+      (async (user) => {
+        if (!user) {
+          await firebase.auth().signInAnonymously();
+        }
+
+        //update user state with currently active user data
+        this.setState({
+          uid: user.uid,
+          loggedInText: 'Hello there',
+        });
+
+        //create a reference to the active user's documents (shopping lists)
+        this.referenceShoppingListUser = firebase.firestore().collection('shoppingLists').where('uid', '==', this.state.uid);
+
+        //listen for collection changes for current user
+        this.unsubscribeListUser = this.referenceShoppingListUser.onSnapshot(this.onCollectionUpdate);
+      });
+  }
+
+  componentWillUnmount() {
+    //stop listening to authentication
+    this.authUnsubscribe();
+    //stop listening for changes
+    this.unsubscribe();
+  }
 }
 
 const styles = StyleSheet.create({
